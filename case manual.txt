@@ -1,0 +1,1 @@
+CASE1 : install Apache Tomcat as a service and create a dedicated system user to manage all Tomcat-related operations
