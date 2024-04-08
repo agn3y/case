@@ -1,7 +1,5 @@
 
 *******************************************
-** Deploy to Apache Tomcat using Jenkins **
-**               or                      **
 ** Installing tomcat as a service        **
 *******************************************
 
