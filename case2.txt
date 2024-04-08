@@ -1,7 +1,7 @@
 *******************************************
 ** Installing tomcat as a service        **
 *******************************************
-
+Here you need to install jdk according to your needed verison
 this is performed on an older version of tomcat
 
 STEP-1
