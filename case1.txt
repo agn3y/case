@@ -1,0 +1,193 @@
+
+*******************************************
+** Deploy to Apache Tomcat using Jenkins **
+**               or                      **
+** Installing tomcat as a service        **
+*******************************************
+
+
+Step #1:Install OpenJDK :
+
+>Firstly update your system packages
+
+sudo apt update
+
+>Downloading default java version 
+
+sudo apt install default-jdk
+
+>To check and confirm, that Java has been installed successfully.
+
+java -version
+
+
+Step #2:Download Apache Tomcat on Ubuntu
+
+>You can get the latest version directly from the official webpage of Tomcat. So you can download from here.
+
+#my tomcat version at a time i am performing this task
+wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.20/bin/apache-tomcat-10.1.20.tar.gz 
+
+
+Step #3:Install Apache Tomcat 
+
+>Create a directory under /opt to extract files 
+
+sudo mkdir -p /opt/tomcat
+
+>Extract the downloaded Tomcat Tar file into the created directory.
+
+sudo tar xzvf apache-tomcat-*tar.gz -C /opt/tomcat --strip-components=1
+
+>Create a dedicated user
+
+sudo groupadd tomcat
+sudo useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
+
+
+Step #4:Give Tomcat user permissions
+
+>Now let’s assign the permission of the folder to the user we have created above for it.
+
+sudo chown -R tomcat: /opt/tomcat
+sudo sh -c 'chmod +x /opt/tomcat/bin/*.sh'
+
+
+Step #5:Create a Systemd service file for tomcat service
+
+>By default, we won’t have a Systemd unit file for Tomcat to run in the background and to easily stop, start and enable its services. So here, we are going to create
+>Create Systemd unit file for tomcat service
+
+sudo nano /etc/systemd/system/tomcat.service
+
+>Write this content in tomcat.service file
+
+[Unit]
+Description=Tomcat webs servlet container
+After=network.target
+
+[Service]
+Type=forking
+
+User=tomcat
+Group=tomcat
+RestartSec=10
+Restart=always 
+Environment="JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64" #Here change the JAVA_HOME Path it with your path
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
+
+
+Step #6:To start, Enable Tomcat service 
+
+>Let’s enable and run the same, start tomcat service and enable tomcat service at system startup.
+
+sudo systemctl daemon-reload
+sudo systemctl start tomcat
+sudo systemctl enable tomcat
+
+>To confirm everything is working normally, check the status of service:
+
+sudo systemctl status tomcat
+
+
+Step #7:Add Roles and Admin username and password
+
+>Edit user configuration file.
+
+sudo nano /opt/tomcat/conf/tomcat-users.xml
+
+>At the end just before </tomcat-users> tag copy and paste the following lines.
+
+#use below given line and change username and password according to you
+
+<role rolename="admin-gui,manager-gui,manager-script,manager-jmx,manager-status,admin-gui"/>
+  <user username="admin" password="password" roles="admin-gui,manager-gui,manager-script"/>
+
+
+Step #8:Enable Tomcat and Host Manager Remote access 
+# in other language if you want to login in tomcat from other than your hosts browser follow this procedure
+
+>For Tomcat Manager’s remote access:
+
+>Edit the Context file  
+
+sudo nano /opt/tomcat/webapps/manager/META-INF/context.xml
+
+>In the file, scroll and go to the end and comment out the following block of text-
+
+<Valve className="org.apache.catalina.valves.RemoteAddrValve"
+allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />
+
+>comment above given code using <!-- to --> the change will look like below given code.
+
+<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+
+>For Host manager remote access:
+
+sudo nano /opt/tomcat/webapps/host-manager/META-INF/context.xml
+
+>when you do changes in above given statement it will reflect on every role beacuse when i added the tomcat-user.xml file i added all roles.
+
+
+Step #9:Access the Tomcat Web interface
+
+>open browser in my case it it firefox
+
+>search 
+
+ip-address@8080
+127.0.0.1@8080
+
+>here you can identify your ip address by using "Hostname -i" command but since i am performing this in localhost my ip is what you can see in example.
+
+
+>check status of tomcat service using "sudo service tomcat status"
+
+>You will see that tomcat is Up and Running.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
