@@ -1,3 +1,4 @@
+#build this file to create docker-img for pre-installed tomcat and jenkins 
 FROM ubuntu:latest
 
 # Update packages and install JDK
