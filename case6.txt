@@ -85,4 +85,30 @@ const server = new SMTPServer({
 
 server.listen(25, () => console.log('Server Running on port 25'));
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6>create an ec2 instance on aws
+
+*install node and npm in that machine
+*allow port 25 for SMPT
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7> go to your domain >> login for example it could be clodfare
+
+*go login cloudfare
+*select domain
+*go to dns records
+*delete existing MX records if there are any if you want
+*click on [[ADD RECORD]]
+*create/setup an A recode for name it could be mail.example.com and give ip
+*create MX record in username give @ and in mailserver give mail.example.com proirity 0
+
+now try sending any mail on your mail server you will see changes in ec2 console.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------to use mail parser
+
+follow this link : https://www.npmjs.com/package/mailparser
+
+
+
+
 
