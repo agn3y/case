@@ -2,3 +2,4 @@ CASE1 : install Apache Tomcat as a service and create a dedicated system user to
 CASE2 : CASE1 in RHEL and Cent Os
 CASE3 : Docker Information and Commands
 CASE4 : Dockerfile-Img #build a docker image for preinstalled jenkins and apche-tomcat 
+CASE5 : Gmail’s SMTP server Information

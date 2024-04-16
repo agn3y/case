@@ -1,0 +1,62 @@
+#creating own SMTP server
+
+*when you send an email it first look for where it need to send the email 
+suppose i want to send an email to support@outlook.com from my email agneypatel96@gmail.com
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1>it will first run a DNS query. 
+#DNS query = support@outlook.com
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2>then it will ask MX records from that outlook server.
+Mx record will tell you what server manages the email.
+and it will return domain name of that mail server.
+[[DNS query: outlook.com >> MX (mail exchange) records >> mailserver.com ]]
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3>now again a DNS query will be performed on the mail server that we have got.
+and it will askfor servers A record.
+
+Here there are different type of records but talking about specifically A record it has information about Hostname or Domain Name,Public IP addr, etc.
+
+#Different MX records (for information you can skip this)
+A = Ip and Domain name
+SPF = spamming check , signature(public&private keys)
+DKIM = Domain key Identified Mail
+DMARC = 
+	value None = accept	
+	      Quarantine = SPAM
+	      Reject = Reject
+#understanding of all records
+*first dns query is performed  
+*then it get A record so now we have ip of particular mail server.
+*now suppose someone is trying to fake my email address and mail someone what SPF record do is check ip of particular mailers ip if it dont match with servers ip it will use DKIM parameters.we can also use SPH for encryption in this case we can encrypt our email with a private key and decrypt mail using public key. 
+*to allow access to anyone to use our public key we use DKIM records it will allow other gmail server or receiver to get our public key to decrypt email which was encrpted by our private key.
+* what to do if email fails checks with DKIM record in this case we can set a DMARC record to reject , add to SPAM or accept the email.
+
+
+when the query is run it will try to get A records and by this process we will get ip of mailserver.com(10.0.0.1) 
+
+now we know ip of mailserver.com
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4>now moving on further we know that we use SMTP[Simple mail transfer protocol] to perform all email-operation.
+SMPT runs on port 25
+SMPTS runs on port 465
+
+SMTP commands:
+
+HELO = Initiate/establishing connection
+MAIL FROM = initiates mail trasfer (receiving email)
+RCPT TO = email forwarded to the user 
+QUIT = quit session
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+reference for node smtp-server : https://nodemailer.com/extras/smtp-server/
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5>go to above given link to reference 
+here fist install node and npm and follow above given link to follow step
+
+now create an index.js
+
+code of index.js:
+
+
+
+

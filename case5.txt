@@ -1,0 +1,6 @@
+To configure your email client or application to use Gmail’s SMTP server, you’ll need the following information1234:
+SMTP server address: smtp.gmail.com
+Port: 587 (for TLS) or 465 (for SSL)
+Authentication required: Yes
+Username: Your full Gmail address (including @gmail.com)
+#nageswara.rao@wiculty.com
