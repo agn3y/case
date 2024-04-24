@@ -1,0 +1,2228 @@
+## LPIC-VID
+------------------------------
+| Linux NOTES AND COMMANDS:  |
+------------------------------
+
+---------------
+>>Peripherals :
+---------------
+>devices that are connected to linux machine
+
+PCI = peripherals component interconnect
+>It's a standard for connecting devices to a computer's motherboard. PCI provides a high-speed data path between the device and the CPU (Central Processing Unit) and is commonly used for connecting expansion cards such as graphics cards, network cards, and sound cards to a computer.
+
+>commands :
+
+lspci = to list pci components
+lsusb = to list all usb
+lsblk = to list block devices
+
+--------------------------
+>>proc and sys directory :
+--------------------------
+
+
+>Explanation why we are talking about this directories
+>So people generally refer them as virtual directory which means they dont exist on your harddisk
+>this directories are created within memory and get created when computer boots up
+
+#proc:
+>this directory contains all the process 
+>provides information about processes and system resources
+>all the processes are listed as numbers and it contain some other system related files
+>use ps command to look at processes for more use {man ps}
+
+#sys
+>contains information about kernel modules and system hardware
+
+#dev directory
+>contains information about all configured and active devices is located here
+
+#information and difference between devices
+>two types of device:
+1>hot plug device
+device that we can connect while system is run like a usb
+2>cold plug device
+device that we need to connect before we boot up the system
+
+>Commands:
+
+udev = Dynamic device management, 
+udevadm = udev management tool
+
+>when we plug in a (usb) device udev match device against particular rules which are located in /lib/udev/rules.d/ 
+>udev report that info to dbus system (desktop bus system) and it will create a new device file and save and save to /dev
+>that is an internal process how your device pop up in system when we connect it
+
+
+------------------
+>>Kernel modules :
+------------------
+
+LKM = stands for Loadable Kernel Modules
+
+>Modular kernel means it only loads necessary thing to work and suppose we plug in some device kernel will load modules to handle that device
+
+>Commands:
+
+lsmod = Show the status of modules in the Linux Kernel shows which modules are loaded
+modinfo = to load information about particular kernel module
+modprobe = Add and remove modules from the Linux Kernel udes for both adding or removing kernel modules
+
+
+----------------
+>>Boot-Process :
+----------------
+
+>a whole series of processes takes place to boot up a machine
+>series of process that boots up a machine
+
+Hit the power button >> BIOS perform POST >> MBR >> GRUB >> Kernel Initialisation >> SYSTEMD 
+
+BIOS - Basic Input Output System / Bios is independent to the operating system / Allow us to boot    multiple systems by selecting boot order
+MBR = Master boot record / size 512 bytes/ located at very first sector of drive/
+POST = Power on self test (it will check all operation functionality on hardware) 
+
+>Linux use to have a historic boot loader called LILO(Linux Loader) 
+>GRUB = Grand Unified Boot Loader
+
+>the difference between LILO and GRUB is LILO can only boot linux system where GRUB can be used for various operating systems
+>in modern system GRUB is set as default bootloader
+
+
+------------
+>>SysVinit :
+------------
+
+>sysvinit can be considered the first process. first this process get started in than in squential order every process starts, due to its seqential execution it was slow so it got replaced by systemd. 
+>init is first process that spawns all process start after that.
+>mother of all processes all process come from it
+>in red-hat it is located in /etc/rc.d/
+>in debian it is located in /etc/init.d/
+
+Command: 
+
+/etc/init.d/firewalld start
+
+
+---------------------
+>>upstart:(service) :
+---------------------
+
+>replacement of init daemon in ubuntu which did not sucesseded much
+>it is non-sequential and parallel processes can be run at the same time however if one process depends on the other process we will not be able to run that process. Both of them have to be independent. 
+>we use initctl not upstart it is only for definition and undestanding perpose
+>we can use "initctl" to preform operation such as start stop and status
+
+Command:
+
+service firewalld start
+   
+   
+-----------
+>>Systemd :
+-----------
+
+>Systemd is a system and service manager for Linux operating systems.
+>we can say systemd as similar as sysvinit
+>it runs process parallel to use this utility we use "Systemctl" command
+>while using initctl and upstart we were relying on script. however, while using systemctl we rely on binary
+>same as above how init was using some particular directory, same as that systemd also use directory which are located at 
+<1> /etc/systemd/system/
+<2> /lib/systemd/system/
+
+Command :
+
+systemctl start firewalld
+systemctl list-units = list all units/processes
+journalctl -d = to see all bootup log / it stored all logs in journald.conf which is located at /etc/systemd/
+
+#Run-Levels in sysvinit
+0 = shutdown
+1 = single user mode / root mode
+2 = multi-user mode without networking
+3 = multi-user mode with networking
+4 = for special purpose
+5 = same as runlevel3 / Full-Mode + Display manager
+6 = reboot
+
+command:
+
+runlevel = displays run level
+init = to run different run level
+telinit = to run different runlevel
+
+
+-----------------
+>> Boot Targets :
+-----------------
+
+>above given (sisvinit) methid is really not preffered method
+>instead we can use Boot Target
+>we used 0-6 for performinh operation here we will do it with systemd
+>in sysvinit we used numerical such as 0-6 in systemd we will use target.basically this both are same it just got replace by name instead of numbers
+
+#Target based run-levels 
+
+0 = poweroff.target
+1 = rescue.target
+2,3,4 = multi-user.target
+5 = graphical.target
+6 = reboot.target
+
+Command : (example)
+
+sudo systemctl isolate multi-user.traget = change run level to multi-user
+sudo systemctl get-default = to see default run-level 
+sudo systemctl set-default rescue.target = change default run-level to single user mode (root mode)
+
+
+-----------------------------------------
+>>MBR vs GPT (Types of Partition table) :
+-----------------------------------------
+
+#MBR :
+>master boot record 
+>in harddisk bydefault there will be a particular file of 512bytes file which will help computer to boot the system up 
+>max 4 partition available in MBR system, we could also have 3 partition and 1 extended partition to add more space
+>common now days
+>older
+>maximum storage support upto 2 TeraByte
+
+#GPT
+>GUID partition table (Globally unique identifier partition table)
+>support 128 partition
+>support upto ZetaByte 
+>to work it need support of UEFI in particular machine 	
+>UEFI is replacement of BIOS (Unified Extensible Firmware Interface)
+>to run UEFi it required 64 bit architecture system (64bit os + 64 bit hardware)
+>we can use gpt to use it as a storage mechanism however to install particular operating system we need to full-fill its requirement (related to 64bit)
+
+
+-------------------------------
+>>Partition on a linux System :
+-------------------------------
+
+>In older linux we used to identify disks as 
+hda = primary disk
+hdb = secondary disk
+
+SATA drive = Serial Attached Drive
+PATA drive = Parallel advanced technology attachement (older disks)
+
+>as we moved forward to modern drives hda partitioning vanished
+
+sda = sata drive A 
+
+>we could take a look at partition by moving to this directory
+/proc/partitions
+
+Command :
+
+parted = used to modify and manipulate partition 
+
+#Description 
+>here we have talked about how MBR can only have 4 maximum partition so if we connect pendrive to the machine we will see sd5 beacuse 4 paritions are already aquired by MBR so it will assign sd5 to pendrive.
+
+#In case we are using SSD we will see sda beacuse there is new difference for identification in HDD and SSD.
+#if we are using NVMe ssd there will be a difference in list of blocks it will be shown as nvme0n. to list other nmve patition it will list them as nvme0p1 (partition1).
+
+sudo blockid = to list all block id
+
+
+-------------------------------------------------------------
+>>File-System Hiearchy (FHs = filesystem hiearchy standard) :
+-------------------------------------------------------------
+
+bin = containe all command binaries
+boot = bootloader files
+dev = device files
+etc = contains host specific systemwide configuration files
+home = home directory for users
+lib = containes libraries for binary files which we find in /bin or /sbin directory
+lib32 / lib64 = library files basically / if particular system supports 32 or 64 bit it allow system to use that
+lost+found = special directories which contains some data (no need to look deeply)
+media = basically worlks as node point / attaching point for pendrive or cd-drive
+mnt = mount directory / kind of work as a mount point
+opt = this directory is reserved for add-on software packages, basically used to install some particular packages which are not part of system may be some extra utility or extended packages 
+proc = contains all process, it could be called process directory
+root = home directory for root user
+run = this directory provides/contain all run-time data
+sbin = this directory contains binary files for root user
+snap = snap package manager directory, may not appera on every system , added externally
+srv = data brought by ftp server or data scraps for web-server can be found in this directory
+sys = contains system about various sytem variables such as kernel,devices
+tmp = temporary directory / morely targeted by hacker beacuse anyone could modify this
+usr = contains whole bunch of user utilities
+var = directory which contains variables 
+
+
+------------
+>>Swapping :
+------------
+
+>basically its a process of adding/using memory. suppose we have 4gig ram and we are running something which will exceed that memory limit in this case we can use harddisk memory to read and write data (same functionality as RAM) that is called swapping 
+>Here, read-write operation done on harddisk is typically much more slower than RAM.
+>we could add a swap partiotion that will do swapping job
+>there could be a file which is designated to do this particular job. which could be more slower than the partition itself.
+>There is smomething called paging which is similar to the swapping but in paging only some portion of particular process is cut down in block sizes which is called frames and could be reloaded to the main memory.
+>Informarion/configuration for swapping is stored in /etc/fstab file
+
+>Command :
+
+swapon = to turn on swapping 
+swapoff = to trun off swapping
+
+#Thrasing:
+> when a system do lot of swapping it is called Thrasing.
+
+
+----------------
+>>Mount Points :
+----------------
+
+>by using this terminology we can playaround with filesystem which is not generally preferable
+>for example we can set our /boot file to some other block and store / directory to some other block
+>another example suppose /var directory storing a lot of log data and suppose it got full and that might make system unstable in such cases we coul mount that particular dir to some other block storage and we still will able to manage the use of system at it fullest.
+>we alaways should keep /dev, /bin, /sbin, /etc, /lib together.
+
+>Command: 
+
+mount
+
+
+--------------------------------
+>>Logical Volume Manager (LVM) :
+--------------------------------
+
+>suppose we have 5 physical drives which can provide 10gb space (every drive has 10gb space) it would be so much better if we can combine them together. with LVM we can do it and then we can devide them in particular partition however we want
+>the only risk in this is if suppose one of them went offline it can currupt entire logical volume
+
+
+------------------------
+>>The LILO Boot Loader :
+------------------------
+
+>Boot manager are also known as Boot Loader
+>it helps hardware and firmware to load the system 
+
+>there are 3 main boot loaders :
+<1>LILO - Linux Loader
+>when we actually want to configure Lilo we can do it with creating a configuration file and it will be stored at 
+/etc/lilo.conf
+>it wont be able to integrate with GPT partition system beacuse it dont suppose UEFI firmware
+>we could directly install Lilo to MBE partition system
+>we can only do all operation by using lilo command
+
+>Commands:
+
+lilo = used to install Lilo onto the MBR
+liloconfig = allow user to configure Lilo
+
+<2>GRUB - Grand Unified Boot Loader
+>grub has replaced lilo
+>we can install grub directory to MBR
+>same as lilo grub also have configurarion file which is located at /boot/grub/grub.conf
+
+>Command
+
+man grub
+grub install = helps in automation of installing grub
+
+<3>GRUB2 
+>replacement of grub
+>kind of same but it has different archetecture and it is way more modular/flexible
+>allow ability to handle UEFI also GPT
+>config file for grub2 is located in /boot/grub/grub.conf
+>a major difference between grub vd grub2 is in listing partition numbers, in grub(legacy) partiotin starts with hd0,hd1,..., and go on where in grub2 it will be shown as hd0, hd2.
+
+>Command:
+
+grub-mkconfig = generate grub configuration file
+grub2-mkconfig = generate grug configuration file
+update-grub = 
+
+>which system use which bootloader :
+>debian based system use grub2
+>Enterprise-linux from version 6 and below (centOs deistros) still use grub(legacy)
+>Enterprice 7+ moved to grub2 ( Located in /boot/grub2/ )
+
+
+------------------------------------------------------
+>>Additional Bootloaders (just for more information) :
+------------------------------------------------------
+
+<1>SYSTEMD = SYSTEMD-BOOTLOADER 
+	- it could load any UEFI Boot image	
+<2>U-boot bootloader 
+	-can boot from any type of disk
+	-can also load any type of boot-image
+<3>SYSLINUX = contain more 5 type of boot-loaders within it
+	(1)SYSLINUX 
+	- specifically designed for microsoft FAT
+	(2)ExtLinux
+	-also known as mini-bootloader
+	-it can boot ext2,ext3,ext4 and btrfs system
+	(3)ISOLINUX
+	-boot from Live CD/DVD
+	-forensic people use it
+	(4)PxeLinux = pexi-linux
+	-pexi boot is basically when you want to boot from network
+	(5)MEMDISK
+	-utility for booting MS-Dos system
+	
+
+----------------------	
+>>Shared File-System :
+----------------------
+
+-here libraries means a particular file that may contain some code which can perform particular tasks
+-different type of executables:
+
+<1>statically linked executables
+-called complete programme
+-contain all necessary file to run itself
+
+<2>dynamically linked executables
+-way more smaller and compact
+-resources which are necessary to run this file are linked dynamically that way we can use one file for many operation
+
+>Commands:
+
+ldconfig = configure dynamic linker run-time bindings
+
+
+----------------------
+>>Locating libraries :
+----------------------
+
+#system bydefault look for libraries in a particular order
+#following by presedence 
+<1>LD_LIBRARY_PATH = bydefault it wont give any output
+<2>PATH 
+<3> this is a directory locate in = /etc/ld.so.conf.d/
+-there is a file in /etc which named ld.so.conf which has this content in it- 
+“include /etc/ld.so.conf.d/*.conf” it basically meand include all .conf file locate within that particular folder.
+<4> at last it will check /lib and /usr/lib 
+
+>to set an envioement variable use “export” command
+
+Idea : we all know there is a variable called $PATH, which is a system defined variable and which contain some value such as JAVA_HOME same as that if we want to add this type of variable we can use "export" command
+
+
+----------------------
+>>Package Management :
+----------------------
+>sourcelist is located at /etc/apt/sourcelist  
+
+
+--------------------------------
+>>dpkg (debian packet manager) :
+--------------------------------
+
+>debian package binaries
+>to see lot of debian archive go to /var/cache/apt/archives
+>be carefull while using dpkg arguments  
+>it dont automatically install dependencies
+
+>Command :
+
+man dpkg
+dpkg -c deb-package.deb = give information about which file are added or created while installation
+
+
+-------------------
+APT packet manager:
+-------------------
+
+>advance packaging tool
+>apt, apt-get, apt-cache, aptitude, RPM, YUM
+
+>Command:
+
+apt
+apt-get
+apt-cache = allow user to query information in available repos , show information and perform other related operations without installing the actual packet
+apt-cache depends on = allow to see dependencies to run package
+apt-cache pkgnames = list all packages installed on system
+apt-cache show “pkgname” = show all necessary info about package
+apt-cache stats = aloow us to see all package statistics installed on system
+apt-cache unmet = shows all unmet dependencies
+
+
+------------
+>>Aptitude :
+------------
+
+>aptitude is same as apt or apt-get or apt-cache 
+
+>Command
+
+aptitude
+sudo aptitude = take us to some graphical interface 
+
+
+----------------------------
+>>RPM(rpm packet manager) :
+----------------------------
+
+>devloped by redhat
+>in red hat systems there are 2 types of packet
+<1>binary package
+<2>source package
+>same as dpkg this RPM also dont install dependencies 
+
+>Command:
+
+rpm -q “package” = allow us to check wether package is installed or not
+rpm -qa = list all installed packages in redhat system
+rpm -q “package” = perform query for particular package
+rpm -qi “package” = perform query and gives detailed information
+
+
+-------
+>>yum :
+-------
+
+>yellowdog Updater modified
+>in this case we repository list file s located in /etc/yum.repos.d/
+
+>Command:
+
+man yum
+
+#Here there is somethin called yumdownloader which is used to download rpm packages and to do it we first have to install “yum-utils”
+
+sudo yumdownloader “pkgname”
+sudo yumdownloader --resolve “pkgname” = it will install all dependencies for thr rpm package
+
+
+----------
+>>Zypper :
+----------
+
+>in OpenSure we use ZYpp command as a packet manager it basically a command-line interface to ZYpp system-management library
+>it is very similar to yum
+
+>Command:
+
+man zypper
+
+
+------------------
+>>Virtualization :
+------------------
+
+>the main tool which is catually used to manage a virtual machine is called a Hypervisor.`
+>eg.VMWare , OrcaleVM
+>there are 2 types of Hypervisor available:
+
+<1>Type 1
+-in this type of Hypervisor Software run directally on the hostmachine or hardware. we dont need to install vm software and then need to create any VM
+-also known as bare-metal-Hypervisor
+-eg Hyper-V or KVM or xen (kernel based virtual machine)
+
+<2>Type 2 = oracle virtualbox
+
+#Extra Knowledge
+-OVF = open virtualization format
+-basically its a file with .ovf exetension if we could create this file we can skip all manual installation of any particular vm and directly import vm with this ovf file.
+
+
+--------------
+>>containers :
+--------------
+
+>containers are basically an image such as a iso image of any particular os but instead of having all programmes and utility it only have necessary utilities such as cd,cp and ls and also it uses host machines kernel to execute its operation.
+>eg.Docker
+
+
+-------------------------------------
+>>IAAS (Infrastructure as a service):
+-------------------------------------
+>Cloud
+>Aws,Azure,GCP
+
+Scallings:
+<1>Horizontal Scalling : 
+-Horizontal scaling involves adding more machines or instances to your pool of resources.
+-In this approach, the load is distributed across multiple machines, typically using a load balancer to distribute incoming requests.
+
+<2>Vertical Scalling :
+-Vertical scaling involves increasing the resources of a single machine, such as adding more CPU, RAM, or storage.
+
+#Load-Balancing:
+-when there are multiple instances are running we can devide load in this instances which is called load-balancing.
+
+
+-------
+>>CLI :
+-------
+
+>Absolute path : 
+-An absolute path is a full directory or file path that starts from the root of the file system. It specifies the exact location of a file or directory regardless of the current working directory
+-eg. /home/user/documents/file.txt.
+-permanent path of particular file or folder
+
+>relative path : 
+-relative path, on the other hand, specifies the location of a file or directory relative to the current working directory. It doesn't start from the root directory but instead navigates from the current location. 
+-documents/file.txt
+-your current working directory
+
+
+--------------------------------
+>>some topic related to shells :
+--------------------------------
+>shell is a programme which accepts and execute commands
+
+-Here we will learn about something about Streams
+-refer streams as device which are part of taking inpur and printing output
+> stdin  (0) = takes input /refer it as a keyboard which is giving intput in case of talking about input-streams
+> stdout (1) = gives output /refer it as monitor which gives output in case of talking about output-streams
+> stderr (2) = displays error /refer it as monitor which gives error as output in case of talking about error-output-streams
+-here number 1-3 define there kind of index.look it upto google
+
+#different shells
+<1>Bash - bourn again shell
+<2>Dash - Debian Alquist shell 
+<3>Korn - an old shell and its compatible with sh which is the original version of bash and which was originally devloped by Stephen R. Bourne
+<4>Zsh - shell which has combine features of bash+korn+tcsh shells
+<5>tcsh -tenex c shell
+
+--------
+>>Echo :
+--------
+-Learn use of echo
+
+
+------------------
+>>Metacharacters :
+------------------
+-while using bash shell we should know that there are some characters whichh holds special meanings which are known as Metacharacters.
+-eg *,$,& etc
+to escape meta character we need to use \
+
+#exmp.
+
+echo “You Owe Me \$10”
+or
+echo you are dumb;echo and a woman
+
+
+---------------
+>>env Command :
+---------------
+-list all enviorment variables
+-only show variable which are exported / global variable
+-Here we can local and global enviorment variables
+<1>Local env-var  = accesible to prticular user or terminal
+<2>Global env-var = accessed by anyone across the system
+
+-to remove local variable use unset “var-name”
+-set command allow us to see everything related env-var
+
+>>Here use man page to explore all below given commands.  
+
+#History = displays commands
+-to see particular command by its number use !77 it will show 77 numbered command
+-or use up and down keys
+-we can clear cache history by using history -c but .bash_history will still contain history of command
+
+#cat
+-used to see content of file
+-we can also redirect output of files to new file using cat
+-to read compressed files use zcat,bzcat,gzip,gunzip,xzcat
+
+#od
+-od command will allow you to dispay file in various formats such as an octal format
+
+#wc
+-word count / list line,words and characters
+
+#nl
+-it will show number of lines in file
+
+#sort
+-sort lines of text files
+-can sort and remove duplication
+
+#uniq
+-to remove duplication
+
+#tr
+-translte commands 
+
+#cut
+-remove selection from each line of file
+
+#sed
+-stream editor 
+-could be used to edit text files
+-powerfull tool use google for more interesting examples
+
+#split
+-split a file into pieces
+
+
+-----------
+>>Hashing :
+-----------
+-a form of cryptography
+-various form of hashing such as md5sum,sha256sum,sha512sum are available
+
+>Command:
+
+md5sum “filename”
+sha256sum “filename”
+sha512sum “filename”
+
+
+-----------------------------
+>>permission in directories :
+-----------------------------
+d - directory
+r - read
+w - write
+x - execute
+
+-there is something called inode we should take a look at it as i am not mentioning much details about it here.
+-here the [cd -] takes you to your previous working directory.
+
+
+--------------------------
+>>touch and file command :
+--------------------------
+-file command determine file type
+-whereas touch supposed to be used for 
+>command :
+
+file “filename” = tells what type of file it is
+
+-also view about making/creating directories
+-quick way to create multiple folder using mkdir
+
+[mkdir -p folder1/folder2/folder3/folder4]
+
+
+-----------------
+>>File-Globbing :
+-----------------
+
+- {*} - it could match any character
+- {?} - it could match any single character
+- [ ] - by using square brackert we can choose variety/range of different characters
+
+-next topic is finding so as the requirment we should learn about locate and find command also which command maybe
+-find command [ find -name "filename = gives file full path] (just for something i didnt wanted to forget so wrote this)	
+
+
+---------------------------------------
+>>Tar(tarball files) related operation:
+---------------------------------------
+
+-tar is an archive utility																				
+-command [tar -cf “name.tar” “file or folder”] = it will create tar file for specified file or folder
+-tar is used to compress and extract .tar and .tar.gz files
+-always use gzip and gunzip for compression related operation.Moreover there options such as xz,bzip however we preffer to use gzip beacuse i am using it for a long time.
+
+
+------------------------
+>>dd(desk dump) command:
+------------------------
+-can be used to copy file
+-it can allow you to copy an entire partition
+-we can also se it like cp command but it has difficult to use
+-while using this we need to be carefull as it perform its operation on low level it can certained do irreversable damage we might use loose our data if this command is not used correctlys 
+-it is a very intresting command go to google for  to look about this command
+
+>Command:
+
+-dd if=/dev/sda1` of=/dev/sdb = copy content of sda to sdb byte by byte
+
+
+---------------
+>>Redirection :
+---------------
+-basically it is about > using this we can redirect something to particular device or file
+-here if redirect some output >> it will not overwrite anything if somefile already exist in system it will just add it into existing file without over-writing it.
+-we already mentioned stdin = 0, stdout = 1, stderr =2 in the topic which is related to shell. Hoever, here we will see how this numbers actally comes in affect.
+
+(1)ls -l 0>file.txt (here 0 means standard input)
+-here it will display output on display beacuse 0 is used for input 
+
+(2)ls -l 1>file.txt (here 1 means standard output)
+-Here,instead of printing output on display it will redirect output to file.txt
+
+(3)ls -l 2>file.txt (here 2 means standard error)
+-Here it will show output on screen beacuse it is not an error however if this command was not valid it would have redirected the output to file.txt
+
+- <<< this will allow us to use value of variable
+
+#using stdin 
+-wc -l<testfile.txt 
+-it will take input from testfile.txt and give output as wc -l
+-that is how stdin works
+-eg, wc -l <<EOF (here we will take input untill EOF it is provided delimeter 
+
+#using stderr
+-ls -l > text.txt 2> errors.txt 
+-here if ls -l is a legal command so it will store result to text.txt. However if it fails it will reedirect the error to errors.txt 
+-that is how we use stderr
+
+
+----------
+>>Piping :
+----------
+
+-pipe (|) will allow us to take output of a particular command and use it as an input for another command 
+-eg. cat file.txt | wc -l
+-use “tee” command
+- basically it will allow us to use multiple commands at once
+
+
+--------
+>>CPIO : 
+--------
+-copy in copy out command
+-similar functionality to tar ie we can grab bunch of file and store them as one archive file
+
+>Commands:
+
+-ls | cpio -ov > file.cpio = create cpio archive
+-cpio -iv < file.cpio = to unpack cpio file
+
+
+----------------------------
+>>Xargs(extended arguments):
+----------------------------
+-build and execute command lines from standard input
+
+(still havent learned about this command) 
+
+
+-------------
+>>Processes :
+-------------
+-process is just a running command
+-deep learn about process tree from google
+-look for multiple things such as PID,PPID,uptime,COMMAND,CPU usage etc
+
+#sending signals to process (performing operation such as kill command)
+
+>Command:-
+
+-kill -l = list all signals (here kill bydefault execute signal 15 which is SIGTERM (terminate))
+-sudo kill “-signal name” “PID” = kill process its just a proper way to writing this command
+-or we can execute above given command with signal number such as {sudo kill “signal number” “PID”}
+-we can also do it by removing SIG part {sudo kill -TERM(signal) “PID”}
+
+#pkill command
+-pkill command perform same operation as kill but instead of using PID it uses process-name
+-pkill nginx = kill nginx process
++here we have something call [killall -l] which list all pkill options 
+
+#pgrep = gives process number of given process or list all process associated with process
+-pgrep nginx = list all process id associated with nginx | dp same work as {ps -ef | grep nginx} but pgrep only show PID 
+
+#nohup (no hang up command)
+-this command will run processes even if user logout
+-eg [nohup sleep 500000] 
+
+
+-------------------------------
+>>Managing process priorities :
+-------------------------------
+-from (-20>0>19)
+-doubt (not watched)
+
+------------------
+>>uptime command :
+------------------
+-Tell how long the system has been running.
+-in uptime the load average tells us average system utilization
+
+
+----------------
+>>free command :
+----------------
+-Display amount of free and used memory in the systems	
+-displayed value is in KB, to see memory in MB use free -m or to see in GB use free -g(not recommended) use free -h prefered
+
+
+----------------
+>>jobs command :
+----------------
+-process which is running in background called jobs
+-we we dial a command and use ctrl+z to stop/pause it then only we can resume that job ctrl+c will cancel it
+
+>Command: 
+
+jobs = list all jobs
+jobs -l = gives job id and process id
+bg [number] = to run the job again but in background 
+fg [number] = to run the job again but in foreground
+sleep 20& = it will put job in background / use & after command
+
+
+----------------
+>>Multiplexing :
+----------------
+-means using multiple terminal 
+-there are multiple option for that such as "screen" but here we will use “tmux”
+-to use tmux first type [tmux new] and then use [ctrl+b >> shift+:] 
+
+
+-----------------------------
+>>Pattern matching with grep:
+-----------------------------
+-include grep,egrep,fgrep and rgrep
+-searches for pattern in file
+-using grep we can not just finding matching pattern of characters but also we can find which file contains that characters
++[grep “searchable-content”	fiel1 file2 file3] or [grep -l “searchable-content”	fiel1 file2 file3]
+*
+-we can perform various operation with grep use manual grep for getting to know grep more
+-in grep ^(carrot)=neginin, $=endofline, . = anychar, | = orlogic [grep “character$" filename] give what you want in place of character and then that special char
+
+Now
+
+#egrep = extended grep
+-used for complex problem which grep cannot perform
+-there is file.txt and in that content is
+
+**************
+campfire     *
+firefighter  *
+fireproofing *
+firewater    *
+firefighting *
+random		 * 
+**************
+
+*command                                         | *output
+-egrep “fire(fighter|proofing)” file.txt         | -firefighter \n fireproofing
+
+#fgrep
+-used to when $ sign is involded beacuse generally grep skip that(grep skip special characters)
+
+#rgrep
+-recursive grep
+-it can search through multiple folder and subfolder 
+
+
+-------------------------------------
+>>VIM the motherfucking text editor :
+-------------------------------------
+-list of commands and explanation
+
+Step1 : vim textfile.txt (creates a textfile named file)
+Step2 : press "i" to insert and after writing whatever you want press “ESC” key
+Step3 : then write :wq to save the changes
+Step4 : press enter 
+
+-use manual to perform various operation.
+:w: Save the current file (write).
+:q: Quit vi.
+:q!: Quit vi without saving changes.
+:wq or ZZ: Save changes and quit.
+:w {filename}: Save the file with a new name.
+:x: Save changes and quit (same as :wq).
+
+-here i will explore vim latter so im skipping exploring part
+
+
+-----------------------------------------------
+>>Block devices and Partitons and File Systems:
+-----------------------------------------------
+-block device simply means your harddisk
+-parition mean paertition
+
+-file systems are method used by OS to organize and store data on disk
+-different FS such as fat32(File Allocation Table, used more on USD devices), NTFS(new technology file system , used by microsoft windows nowdays also work for some linux).
+
+-some Older FS :
+-ext - extended file system
+-ext2 has support upto 32 tb and no concept of journaling (it means keeping a record of modification)
+-ext3 has journaling , faster startup than ex2, faster recovery compared to ext2.
+-ext4 has stability, MAX PARTITION 1EB (exabyte),journaled ,much-faster preformance,originally it was an extension to ext3
+
+-some new FS :
+
+-btrfs = perform own type of RAID backup and LVM amd also allow to create snap-shot of file-system, compression and auto defragmentation 
+-Reiserfs = allow very small file so efficient for space 
+-ecryptfs = Emterprise Cryptographic FS - provides encryption to the data which is stored in it , more security focussed
+-XFS = good for large partition 
+
+!-core tools fdisk, gdisk, parted, mkfs (we are focused on)
+
+-Using fdisk to create partition:
+-stands for fixed disk and a partition tool
+
+>Command : 
+
+sudo fdisk /dev/sdb (it will take you to fdisk menu there you can choose suited arguments)
+
+-after doing everything use “w” to save changes. 
+
+#installing file system
+
+-we will use mkfs and mkswap commands
+
+>commands:
+
+sudo mkfs.ext4 /dev/sdb1 = install ext4 file system to targeted directory
+
+-if we use only mkfs it will install ext2 file system.
+
+-to create a swap system we need to change type of file system to (82)LINUX SWAP the we can create a swap file
+
+>Command :
+
+sudo mkswap /dev/sdd1 = setup swap partition to given block then do
+sudo swapon /dev/sdda = enable swap partition to given block 
+swapon, swapoff - enable/disable devices and files for paging and swapping 
+
+!- gdisk and parted :
+-sudo gdisk /dev/sdd = create partition
+-sudo gdisk -l /dev/sdd = list 
+
+!-parted
+-sudo parted -l
+-sudo parted /dev/sdd
+
+
+--------------
+>>Disk usage :
+--------------
+
+-in linux file system every file and directory has soemthing called inode. inode stores metadata about file and directory
+-sudo du --inode /home = reveal info about inode which is assigned to particular directory
+
+>Commands : Use them with diiferent arguments which are decribed in Manual
+
+- df (df displays the amount of disk space available on the file system containing each file name argument.)
+- du (Summarize disk usage of the set of FILEs, recursively for directories.)
+
+*more commands related to file system
+-fsck (fsck - check and repair a Linux filesystem)
+-it doesnt work on xfs
+-pay attention to exit codes they are important
+
+*tunning the file system (not often used)
+- tune2fs - adjust tunable filesystem parameters on ext2/ext3/ext4 filesystems
+-look more on google if you are intrested about this command
+
+
+----------------------
+>>Exploring xfsprogs :
+----------------------
+-as we leaned above that the tune2fs and fsck are not compitible with xs here s something called xfsprogs which can be used to work with xfs
+-to install xfsprogs(xfs programmes) use:
+
+sudo apt install xfsprogs -y
+
+Commands :
+
+→ xfs_repair (repairs an xfs file system)
+→ xfs_db = for xfs debugging
+→ xfs_fsr = file system reorganizer  for XFS
+
+
+---------------------------
+>>Softlinks and HardLinks :
+---------------------------
+
++ create a hardlink by
+
+[ln filename hardlink-name]
+
+-both files point to the same iNode.
+-every time we make any change in either of this files it will reflect on both
+-its like creating a shortcut which we create in windows
+-basically its like having a copy of an actual file but both are interconnected if we make changes in one file it will automatically get reflected to the other one aswell.
+-line count is changes and in size of files there is no change
+
++ crate a softlink
+
+[ln -s filename mysoftlink]
+
+-in casee of softink linstead of pointing to inoode it ppoints to filename 
+-line count unchanged and they differ in size
+-if we change origina file name it will directly affect softlink cause it depends on name
+
+
+---------------------
+>>Mount and Unmount :
+---------------------
+-if we try to mount a directory to a mount point which does not exisst it will the operation.
+
+>command: 
+
+man mount
+man umount 
+
+
+******skipped some topics which will bea later added******
+
+---------------------
+>>Locating Commands :
+---------------------
+<1> locate = takes less time, this command operates on cache database(to update this database use updatedb) path = /var/lib/mlocate/mlocate.db
+   → an interesting fact about locate that it does not operate on some directories such as tmp and var beacuse lot of modification happens there but we could change that by modifying the config file which is locate in etc/update.conf
+
+<2>find = take more time, operates on directory hierarchy based on various criteria like name,size,permission etc.
+
+
+-------------------
+>>System Commands :
+-------------------
+-basically it is related to locating commands kind of
+
+<3>whereis = locate the binary, source, and manual page files for a command
+
+<4>which = locate binary , it will locate command binary
+
+<5> type = display information about commands	
+
+
+------------------------------------
+>>Ownership Groups and Permissions :
+------------------------------------
+
+#Permission :
+
+-here we can have multple user to machine or multiple group added to machine and multiple user can be a part of same group and one user can be a part of multiple group
+-now if we have multiple user and groups on system they will definitely create files which can only belong to them not to other except the root user 
+-here root user is kind of first user who have all permission and can perform any task on system 
+-as we talked earlier multiple user will create multiple files right so whoever will create any file to modify and manage those file we need permissions and who creates the file will have the permission to make any modification on it thats tthe logic and if we want someone otherthan use to make any modification we can allow them to mess with our file by allowing them kind of an ownership
+
+-here it is permission structure
+
+drwx|rwx|rwx (in real time they wont be seprated by | )
+
+here,
+D = directory	|		r = read	|	w = write	|	x = execute
+
+-now as we seen above there are three colums seprated 
+-first columns belong to user
+-second to group
+-third are global permission means we dont need special permission to perform any operation
+-bydefault if we create a user linux will also create a group with same name as user so dont get confuse.
+
+#Ownership :
+
+-as we discussed file belong to user we can change files owneship to other user to allow them to modify file
+
+>Commands :
+
+chgrp = to change group /To change group ownership
+chown = to change owner / to change user ownership 
+sudo chown user:group file.txt = to change user andd group of file to something what are parameter
+chown :group file.txt = if we use : it will change permission for currenlty logged in user and group is already ddescribed in command.
+
+#to change file permission there are two way :
+(1)Symbolic = 
+(2)Octal =
+
+#actally here are some parameters which are usefull but im skipping them as i dont use them :
+u = owner
+g = group
+o = others (global)
+a = all
+
+#we will use operators(+, -, =) to modify permission
+r = read, w = write, x = execute
+4 = read, 2 = write, 1 = execute, 0 = zero permission
+
+>Command :
+
+chmod g+w file.txt = gives permission of writing to group
+chmod u-w file.txt = subtract write permission from user
+chmod a=rwx file.txt = allow eveyone to modify anything in file
+chmod g-x,o-x file.txt = remove execute permission from group and other 
+
+#octal notation
+
+chmod 7|5|2 = it will allow group all permission user read and execute permission and others write operations
+
+#special permissions :
+
+(1)suid (set user id) = execute file as owner permission 
+-eg. ping 127.0.0.1 
+-above given command is a very basic networking command but to use this command we really need admin or root access beacuse it is a low level command which actually let us talk to the hardware (to loop back address)
+-so what we are doing here is running this command with root user preveledges with allowing root access	
+-that proves our theory. to add more to it is a file based command.
+
+(2)sgid(set group id) = samilar to suid it will allow us to execute file as a group permissions 
+-cant think of any use of this command at a moment 
+
+(3)sticky bit =
+-do absolutely nothing on a file 
+-when we set this permission on a folder (what is only use case here) only owner of the file can delete that particular file in that folder
+-suppose we downloaded jdk-20.tar file and moved it to tmp directory and more than one users are accessing tmp directory in that case no user other than you can delete that file which you downloaded and moved to tmp directory.
+
+#understanding permission
+
+S (capital) = owner permission
+s (small) = special group permission
+t = sticky bit permission
+#now how to utilize this functionality :
+
+-use s for suid | chmod g+s = group + suid
+-use s for sgid | shmod g+s = group + sgid
+-use t for sticky key | chmod o + t = other + sticky key
+
+#octal notation for this above given command :
+
+-suid = 4
+-sgid = 2
+-sticky bit = 1 
+
+chmod u+s file.txt = suid permission to file
+chmod u+x file.txt = sgid permission to file
+chmod 1755 Downloads = set sticky bit permission to Downloads directory. (even if we give 777 it willl not be deleted beacuse of special permission)
+
+-as we mentioned above how we used 752 to modify permission it was actually [0|7|5|5] in actual there was 0 before 752 which we did not included beacuse it gives special permission and 0 gives 0 permission so there will be zero permission as special permission.
+-eg.
+
+#Defualt permissions
+-for a file default perission is 0666 (no special permission, read and write permission to every user, group and other)
+-for a directory default permission are 0777 /9no special permission and read write execute is allowed to everyone)
+
+-in above 2 sentences we saw deafult permission however it really depends on umask
+-type umask in console and it will thorw some value for example lets take 0002 
+-every time we create file or folder dafualt permission will be deducted with umask value and final permission will be allowed to the file or directory
+
+-files defualt value   0666 
+-umask default value  -0002
+                       0664 
+
+-so this is how file and folder get default permission octal value
+
+#modifying umask value
+
+umask 0022 = it will set value to 0022 and then we already know about defualt value will system assign to file and folder as we discussed above.
+
+#now find which files have this suid pwermission
+
+sudo find / -perm -u+s = list all files in root directory which have suid permission
+sudo find / -perm -g+s = same as u+s but from group
+
+------------------------------------------------------
+>>Understanding and Modification of shell enviorment :
+------------------------------------------------------
+-two types of shell
+(1)Interactive login shell - (shell that we get when we login/ssh)
+- go to commandline and type echo$0 in output we get (-bash) here - means we havae an interactive login shell 
+- now go to virtual machine and open terminal and do the same(go to (2))            
+
+(2)Interactive no-login shell 
+- if we do it we will get (bash) but without - which means its a no-login shell
+
+#Configuration of our login shell
+-located at /etc/profile
+-here is something interesting there is a file named .bashrc which is a kind of script and starts everytime we fire a new terminal. it used to set enviorment variable, define aliases and customize shell's behavior.
+-learn how to customize bashrc its a good idea.
+
+#customizing shell enviorment :
+-use export command to set variable globally such as [export SETH="anu"] assign seth value = anu and to undo changes use [unset] command
+-alias is an alternative way to create shortcuts or alternate name for commands such as
+
+[alias ll='ls -la'] (if we type ll it will output common result of ls-la)
+[alias mc='echo “mader”'] (alaways use ‘’)single quatation.
+
+-we can also create command as a function
+-if we define them in bashrc it will be permanent and if not after reboot this command will be gone
+-eg
+
+friends() {
+  echo -e "Name\tEmail"
+  echo -e "Ayush\payushpatel09@gmail.com"
+  echo -e "Anirudh\tanirudhparabk98@gmail.com"
+}
+
+friends
+
+-here we caan load bashrc changes by [source .bashrc] or we can use [. .bashrc]
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+#Enviorment-variable setting Note :
+
+to set variable path go to home directory of user and then
+look for .bashrc file
+then open file and add path by 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PATH=whatever the path is: giving another apps path here :$PATH
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+if we want to add another path for any other application we can simple do it by
+here everytime we add path in .bashrc file we need to use this command
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+source .bashrc
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Second Method ( Used in production )
+
+we can also do this for any specific tool for example lets take maven
+
+go to .bashrc then 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Maven=/home/agneypatel/Distros/apache-maven-3.9.6/bin
+#then run
+source .bashrc
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+ Second example jdk
+ 
+ go to .bashrc then
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+jdk=/home/agneypatel/Distros/jdk1.8.0_202/bin
+#then run
+source .bashrc
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+ now we need to declare PATH so the final code will be
+ 
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Maven=/home/agneypatel/Distros/apache-maven-3.9.6/bin
+jdk=/home/agneypatel/Distros/jdk1.8.0_202/bin
+PATH=$Maven:$jdk:$PATH
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+ here we have given variable path fo two app and added them to PATH variable
+ 
+ BUT
+ 
+ when we are working in production we do not give bin as direct in path instead of that we do
+ 
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export Maven=/home/agneypatel/Distros/apache-maven-3.9.6/
+export jdk=/home/agneypatel/Distros/jdk1.8.0_202/
+export PATH=$Maven/bin:$jdk/bin:$PATH
+
+#here export was added after writing the code and this note is for me to unserstand 
+# export allow this user variable to get accessed from anywhere in system
+# export make it global so it will be accessable to everyone
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+Reason:
+lets say there are two apps jdk and maven, both run on java. if suppose we run mvn command beacuse it also require java it might look its command in jdk's bin folder and operaton will not execute it might mistake it as mvn but its actually jdk folder's bin
+
+Benefits:
+•  Path value is seprate and not messy and clustered
+• one tool will not mistake for refering other as the one they are looking for
+• suppose we have update maven in that case with first method we have to change some parameter of path which might be hard to do beacuse of that clustured path thats why second method is more preferable
+
+ALL SYSTEMS COMMANDS ARE STORED IN BIN
+
+$PATH containes all commands of operating system
+this is default variable comes with linux system that contains all system related commands path 
+
+do not mess with $PATH variable
+
+why to dowanload and use verything so wa can have full acess on everything we use
+
+date:21/04/2024
+
+we can also add path by using
+export PATH=$PATH:"path-of-var"
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+                     |
+---------------------
+>>DESKTOP MANAGERS :
+---------------------
+(1)Gnome
+(2)KDE plasma
+(3)Xfce (best beacuse its more light than other)
+
+-different protocol to access machine remotely
+-vnc(virtual network computing-it allow you to knida control the machine if you manage to hack it) it uses RFB (remote buffer) protocol
+-SPICE is a protocol which can be used to remotely interact with some machine
+-RDP on windows remote desktop protocol
+-freerdp which is for linux itd opensource and also something called xrdp and one more which is called XDMCP (X DEPLOY MANAGER CONTROL PROTOCOL)
+
+
+------------------
+>>Shellscripting :
+------------------
+-some basic of shellscripting.
+-variable, conditions, loops
+
+#some commands :
+
+- seq = sequence command (if we type seq 10 it will print sequence of 1 to 10)
+- test = test - check file types and compare values
+
+
+--------------------------------------------------
+>>Intoduction to X11  (a display server protocol):
+--------------------------------------------------
+-https://youtu.be/mV1TNyWGQQ8?si=BDLVyrIQMO6fs_vS
+X11, also known as X Window System or X, is a fundamental framework for graphical user interfaces in Unix-like operating systems. It provides the basic tools and protocols to build GUI environments, allowing users to interact with applications through windows, icons, buttons, and other graphical elements.
+X11 is a network-transparent windowing system designed for Unix-like operating systems. Developed by MIT in the 1980s, it has become the de facto standard for graphical user interfaces in Unix environments. X11 provides a platform-independent way of managing graphics and input devices, enabling applications to display graphical content and receive user input.
+X11 is a powerful and flexible framework for building graphical user interfaces on Unix-like operating systems. Its client-server architecture, network transparency, and support for various input devices make it a versatile platform for desktop environments, window managers, and graphical applications. Despite newer alternatives like Wayland emerging, X11 remains widely used and supported in many Unix environments.
+-x is a family and it was devloped in 1984 it was devloped by x.org
+-x11 is in used from 1987 
+-dispay things on display and allow us to give output to device
+-Not Most secure
+
+# X window configuration file
+VESA - virtual electronic standard association
+DDC - dispay data channel
+-file is located in /usr/share/X11/ dir
+
+#Windows and display managers :
+-when you login to your device and you see nice nicelly set username and pass input field, time and date everything that's done by display manager
+-eg.lightdm  (popular within ubuntu family) , KDM , 
+-conf file located in /etc/lightdm/light.conf.d/  or in /etc/init/
+
+#remote access in X based server
+-when we freshly install any system such as ubuntu we only might have cli in that case we need to install x-11 apps we can do that really we can install what we need rather than installing everything.
+-leaving this topic to text file
+
+
+-----------
+>>Wayland :
+-----------
+- its a display server technology (like X11)
+- it can be defined as a replacement to X11 and its more easy to use and faster also
+- client-side rendering (application itself speak to client)
+
+
+----------------------
+>>DNS and Client-DNS :
+----------------------
+-DNS server config file /etc/resolv.conf ( port no 53 for DNS )
+
+-now /etc/hosts file is a very important file 
+if we enter [10.10.10.10 google.com it will redirect us to 10.10.10.10] ip address
+-/etc/hosts can be used to manually point some ip and domain to confuse someone 
+
+-everytime we search something it first check hosts file and then resolve.conf fille
+-to change the order of this above given statements we can use file which stores this info and it is located in /etc/nsswitch.conf   
+
+>Command : (host commands)
+
+nslookup - used to find ip of domainname
+dig - similar functionality as nslookup 
+
+
+-----------------------------------
+>>User-group creation and removal :
+-----------------------------------
+
+- create and remove {user-groups}
+
+-password for group and user are stored in /etc/shadow and /etc/gshadow but in encrypted form 
+
+>Commands :
+
+useradd = create user
+deluser = remove user
+passwd = create or change password of particular user
+chsh = this command can be used to change shell of any user such as migrating someone from bash to zshs
+
+sudo useradd new-user -d /home/new-user -m -s /bin/bash
+
+root:x:0:0:root:/root:/bin/bash
+-description of above statement which is part of /etc/passwd
+user:paasword:uid:groupid:description:$HOME:$SHELL
+
+#here there is a special directory /etc/skel 
+-why it is special beacuse in this dir whatever you will create it will be added to all the user after you create means you cret something in skel directory and then create a new user the new user have all the content that is stored in skel
+
+ 
+ # creating and removal of group
+
+-to check wether a group exist or not we can use [cat /etc/group] command
+
+sudo:x:27:agneypatel
+-for understanding
+group:password:gid:user which are part of group
+
+>Commands :
+
+getent - get entries from Name Service Switch libraries
+
+groups  = print the groups a user is in
+groupadd = create group 
+groupdel = remove group 
+
+sudo groupadd groupname 
+
+#modification in existing user and groups  :
+
+>Command  :
+
+usermod = modification on user
+groupmod = modification on group 
+
+sudo groupmod -g 1233 group = it will change group id (just to show example)
+sudo groupmod -n newgrpname oldnameofgroup = rename the group
+sudo groupmod -G groupname username = add user to particularlly defined group
+sudo groupmod -aG groupname username = add user to group
+
+-difference between above given 2 command is if we use 3rd command two times it will overwrite the modification which was done when we executed the first commands that is why we use the second command it will not overwrite anything.
+
+
+--------------------------
+>>Working with passwords :
+--------------------------
+-we already know about /etc/shadow and /etc/gshadow. basically this are the files that stores password in encrypted form and mainly targeted by hackers
+
+Tips:
+-if we see encrypted text in shadow file starting from
+
+(1) $(number)$ = it means it is md5 hash function
+(2) $(number, character) $ = it could be blowfish hash functtion 
+(3) $5$ = sha256 hash function (secure hash algorithm 256)sss
+(4) $6$ = sha512 hash function (most secure currently)
+
+
+
+
+
+-  to set password reset time we can use
+
+chage command = chage will allow you to user password expiry information
+
+
+-------------------------------------------------
+>>Introduction to cron (a utility) or cron job  :
+-------------------------------------------------
+-automating task on system or we can say scheduling tasks
+- files related to cron jobs are located within /etc directory and other dir is /etc/cron.d/ 
+- crontab (one of cron job file) 
+
+>Commands :
+
+ cron - daemon to execute scheduled commands (Vixie Cron)
+ crontab -e = to edit crontab / or we can say edit cronjob 
+  
+ -here whenever we are logged in with user otherthan root it will only show 6 field beacuse we are using crontab for particular user and it does not make sense to allow adding cronjob for user which are otherthan looged in user 
+ -bydeafult cronjob will not accept bad command (invalid command) 
+ 
+>Command structure : 
+
+17 |  *  | * | * | * |  root  |  cd / && run-parts --report /etc/cron.hourly
+
+# i have devided them in 7 column 
+
+- first column denotes minutes
+- second denotes HOUR
+- third denote day of month
+- fourtth column denotes months (eg august , may , march)
+- fifth column denotes day of week
+- sixth denotes user that is running the job
+- seventh column means the command which we want to execute
+
+#assigning cronjob permiission 
+
+-here we will assign permission to user that who can create cron job 
+
+-first check man crontab
+
+>Command :
+
+crontab -l = to list your cron 
+crontab -e = to create cronjob file
+crontab -r = to remove cronjob file
+crontab -l -u username = to see cronjob file for particular user (need su preveledges)
+
+# Now to allow creating or restricting particular user to allow or deny from using cronjob.we can create two file based on that users will be able to use crontab 
+-create this both files in /etc directory
+
+(1) cron.allow = allow user to create cronjob
+- in this file we have to specify users name whom we want to allow to use cronjob
+- open file add username and save changes
+
+(2) cron.deny = allow restrict particular user from using crontab
+- procedure is same as above
+
+# here allow file has more presedence than deny file but when we create we must add username or bydafult it will not allow anyone except root
+# if we write some username in both file ultimately it will allow beacuse allow has more power
+# if suppose we only create allow file and dont create deny file bydefault crontab will not be allowed to anyuser except root user
+
+
+-----------
+>>Anacron :
+-----------
+- basically its kind of same utility as job but more usefull
+- suppose we sheduled something at 5am on saturday it powercut happend and crojob missed its execution at this type of scenerio anacron is helpfull
+- anacron recognize there was a scheduled cronjob but somehow it was not executed so anacron will check the status of cronjob which was not executed beacuse of powercut and resume it immidiately. we can also add delay it running.
+- anacron will keep a record file of jobs sucessfull execution and it is located in /var/spool/anacron (kinda work as a refrence point)
+
+- there are two directory within etc 
+- basically in this folder there are scripts which will excute
+(1)cron.daily
+(2)cron.weekly 
+
+- Now notice how we talked about adding delay in anacron job we can do that by modifying /etc/anacrontab
+- 1 in this file means everyday and 7 means weekly @monthly means monthly
+- second column defines delay
+
+# AT command :
+-as we discuss above about cronjob but what if we want a job to run only for once we ca do it using "at" command
+-first install “at” command with apt-get
+
+using command: 
+
+at 10:23 hit Enter (we can use anytime according to our need)
+>mkdir testfolderwithat
+> <EOT>
+
+- it will create testfolderwithat 
+- <EOT> (end of transmission) we can get it using "ctrl+D" or “ctrl+shift+D”
+- use manual for at to perform various operation
+- to list all the jobs scheduled with at use [atq] command
+- to remove jobs created with “at”  use [atrm “jobnumber”]
+- Similar as cron we can use allow and deny file to allow or deny particular user from using at command
+- same as cron define this file within /etc
+(1)at.allow
+(2)at.deny 
+
+# Scheduling with Systemd
+-here we will use systemd for scheduling particular task instead of using crontab and at
+-incase of systemd there will be a "timer unit file" (.timer) file (when) and we need .service file(what to do) to correspond to the .timer file
+
+# using the command
+-first we need two file
+(1)file.timer and (2)file.service 
+
+- In systemd there are two type of timers
+- Mnonotonic Timer (it uses OnBootSec and OnActiveSec)
+- Real time timer (it uses OnCalender)
+
+>Commands :
+
+sudo systemctl list-timers --all = list all systemd related timers
+systemctl cat logrotate.timer = open the timer file we need to use systemctl 
+
+- now if we want to define directly means without creating time and service file we can use
+- do same job as cron but syntax is more easier than cron
+
+sudo sustemd-run --onactive=60 /bin/mkdir /home/ipvzero/mewfolder = this will crete new folder at given path  
+
+
+---------------------------
+>>Concept of Localization :
+---------------------------
+-basically it means to set user enviorment such as setting machines language as english or russian and may be setting keyboard such as US or UK keyboard,date showing format etc.
+
+>Command :
+
+locate = gives basic output such as keyboard type,date format,time format etc
+
+#some information about characterset
+
+*ASCII - American standard code for information intechange
+-it uses 7bit to store characters and it will store characters of english language 
+
+*ISO 8859 - devloped by iso (international organization for standardization) 
+- it will print international characters
+
+*UNICODE - very comprehensive in this there is an international standard which stores everything in 3byte format and can print all langauges around the world
+
+*UTF - unicode transformation format / similar to unicode but insted of 3bytecoe it take them an transform them into 1 or 2 bytecode
+
+-for english language now ASCII is replaced by utf-8 
+
+-UTC - cordinated universal time
+
+>Command :
+
+file file.txt = it will output which character set is being used
+iconv = convert text from one character encoding to another and by giving //IGNORE we can skip international characters also
+timedatectl = to set time and date 
+timedatectl list-timezones = list all time-zones
+timedatectl set-timezone Asia/Calcutta = set time zone to described timezone
+tzselect = allow to see timezone available within continent
+
+-there may be some file /etc/timezone stores timezone info
+-and for time it could be located at /etc/localtime (its a symlink)
+
+
+------------------------------------------------
+>>Introduction to Hardware and Hardware Clocks :
+------------------------------------------------
+-our clock which is in hardware is battery operated so evenif after poweroff it rightly contain time (for running it uses CMOS battery)
+-we can set clock from bios
+-accuracy of time is really important beacuse many programme rely on clock
+-Bydefault linux have two types of clock:
+(1)Softwareclock (2)Hardwareclock(real time clock)
+-both clocks are always in syncronization that's why everytime we start copmuter we see right time if it was set correctly 
+#utility to manage both types of lock
+
+hwclcok - time clock utility , it can set hardware clock time and can modification on hardware clock 
+
+
+----------------------
+>>Intoduction TO NTP :
+----------------------
+-its a protocol named network time protocol
+-it will allow clock to synchronize over a network and with that we will have most accuracy
+-it rely on clock STRATUM architecture, its a hiearchy followed from 0 to 15 and 0 is top on hierchy and have topmost accurate time this are called atomic clock
+-more low stratum level means more accurate time
+
+#NTP comfiguration :
+-ntp daemon is installed bydefualt [sudo apt install ntp -y] if not installed
+
+>Command :
+
+sudo systemctl status ntp = gives ntp status (ntp use udp and 123 port)
+ntpdate = allow to set date and time via NTP
+ntpstat = show network time synchronization status
+ntpq = query programme for ntp
+
+-config file for ntp /etc/ntp.conf
+
+#modern way of ntpd 
+-chrony daemon 
+-give more accurate time in comparison of what ntp daemon does
+
+>Command : 
+
+sudo install chrony = install chrony daemon (we cannot run chrony and ntp at same time one must be stopped)
+sudo systemctl stop ntp = stops ntp
+sudo systemctl start chronyd.service = start chrony
+chronyc = query programme for chrony
+
+-config file for chrony is in /etc/chrony/chrony.conf 
+
+
+---------------------------
+>>Introduction to Logging :
+---------------------------
+
+- Kind of information that could be used by forensic experts may be 
+- this topic covers log and how logfiles are essential for troubleshooting
+
+#important log files
+- /var/log/dmesg = kernel run information (info above devices connected to hardware)
+- /var/log/messages = contains global system information 
+- /var/log/secure =contains information of authentication and authorization(suppose if we try to login with wrong pass record will be generated here)
+-In systemd this files are managed by rsyslog (rocket-fasy system log)
+
+>Command :
+
+dmesg = dmesg is used to examine or control the kernel ring buffer. default it will print kernel ring buffer
+dmesg | less = it gives nice pagging effect
+dmesg -x = Restrict output to the given (comma-separated) list of facilities
+
+#(Below given information is refrence to undestand all log file no need to remember / to understand who send the messages and how sever the condition is )
+
+here, we have run level
+0 - emergency level [keyword - emerg]
+1 - alert level [keyword - alert]
+2 - critical level [keyword -crit]
+3 - error level [keyword - err]
+4 - warning level [keyword - warn]
+5 - Notice level [keyword - notice]
+6 - Informational level [keyword - info]
+7 - Debug Level [Keyword - Debug]
+
+-basically when we use this command it give some output like this :
+
+kern  :err   : [    1.900047] misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+
+- in first column it defines by whom this task was triggered or message was created for kernel log
+- second column is run level
+
+#information about facility 
+- here we see kern in first column basically first column defines they are kernel messages
+- 0 = kernel facility generataed message 
+- 1 = user generated message
+- 2 = mail system generated message
+- 3 = daemon generated message
+- 4 = auth (ssystem authintication) generated messages
+- 5 = syslog (messages generated internally)
+- 6 = lpr (line printer system)
+- 7 = news (message generated by network news sub system)
+- 8 = uucp (message of copying file from one host to another)
+- 9 = message generated by cron sunsystem 
+- 10 = authprev (same as 4 but keep security authentication messages)
+- 11 = ftp (ftpd generated messages)
+- 12 = ntp (ntpd generated messages)
+- 13 = security (log audits)
+- 14 = console (log alerts)
+- 15 = solaris-cron (for solaris system)
+- 16-23 = locally used facilities
+
+#introduction to rsyslog 
+- what it does is replace original syslog 
+- it can also store database log such as MySql and Postgre
+- config file for rsyslog is in /etc/rsyslog.conf 
+- rsyslog.conf = rsyslogd configuration file
+- here what we describe above will come to use in information about facility we desscribed most of them now if we go to /etc/ and open connfig file we can see which facility is active and where it is storing its log files
+
+>Command :
+
+man logrotate = designed to ease admin of system that generates large number of log files.
+
+-logrotate conf file is in /etc/logrotate.conf 
+
+#Understanding syslog-ng
+
+- another option of syslog and rsyslog
+- its more enhanced version and support more input and output basically give more feature then other given two
+- config file for this is located in /etc/syslog-ng/syslog-ng.conf
+- and other info it is same as what i described above 
+
+
+----------------------
+>>Systemd Journaling :
+----------------------
+- it collect whole bunch of information including systemlog information and kernel log messages (k manages)
+- actual journal config file is in /etc/systemd/journal.conf (below given files are log message files)
+- we can find this info in /run/log/journal ( info is volatile means reboot machine and its gone)
+- in /var/log/journal persistent information is located (which will survive a reboot)
+- we could not open this file with cat and other text editors we need to use a special command
+
+>Command :
+
+(man) journalctl = command-line utility to query and display logs from tge systemd journal. use it with manual
+logger = enter message into systemlog 
+systemd-cat = connects a pipelinr or prohrams output to journal
+echo “Udta-punjab Girta Hariyana” | systemd-cat = it will directly store output to journal 
+
+- message stored into /var/log/messages, by using this logger command we can directly insert message in this message log file
+- systemd-cat is integrated with messages/journal file
+
+
+-------------------------------
+>>Introduction to Linux Email :
+-------------------------------
+- in linux Email is modular meaning we have small programmes to do things instead of having one big programme
+- linux email architecture in broken down in 3 components :
+
+(1)MTA - mail transfer agent
+-responsile for sending incoming emails to MDA
+-in case of outgoing email MTA communicates with other MTA
+
+(2)MDA - mail delivery agent
+-responsible for delivering messages which were received from MTA and deliver it to Users inbox
+  
+(3)MUA - mail user agent
+- its basically the interface it does not receive messages but instead it displays messages which are already stored on server
+
+-Mail protocol used while sending mail is SMTP (simple mail transfer protocol ) port 25
+
+*MTA agents
+- postfix (more secure and easy to use) 
+- sendmail (cant say anything about security but it was pretty hard to use)
+- Exim - more flexible 
+- Qmail - simpler and more secure
+
+*MDA
+- email queing and forwarding functionality 
+- Bin Mail(to install binmail install Mailx)
+
+
+-----------------------
+>>Email Configuration :
+-----------------------
+- MailX is now known as mailutils (might have to install it)
+
+- etc/aliases is an important file which creates alialses means that ut allows you to redirect mail from one user to another or to multiple users among other functions 
+
+>Command :
+
+newaliases = reloades aliases config file
+mail = process mail messages
+
+- topic skipped (will watch from youtube)
+
+
+---------------------
+>>CUPS introduction : 
+---------------------
+- Common unit printing system
+- it accepts printjob (It stores all instruction to post-script document and send it to printer using print que system)
+- cups use ghost scripts ( a small programme which can translate post-script documents )
+- post-script use different drivers and this drivers are managed by cups by using config files (this file is located in /etc/cups/) 
+- cups also provide web-inteface (using this interface we can connect to printers which are directly connected or networkly connected)
+
+
+#printing tools 
+
+- /var/spool/cups in this folder printjob files are stored
+- cupsd.conf - cups scheduler file (by modifying this file we can also use printer from network)
+
+>Command :
+
+lpr = print files (og command used in legacy boot systems)
+lpq = show printer que status
+lprm = cancel print jobs
+lpc = line printer control programmer
+
+
+---------------------------------------------------------------
+>>Introduction to Networking/Fundmentals (One Combined Topic) :
+---------------------------------------------------------------
+- network definition
+- OSI Model and Its 7 layers
+- TCP/IP Model and 4 layers
+- how bits travel as elecrtic signals in this signals 0 means absense of signal and 1 means presense and ultimately it will make kind of pattern and thats how the data travel over electric signal
+- in fiber optic same as coppercable 0 means absense of light and 1 means presense of light(both copper and fiber optical represents physical layer transmission) 
+
+(OSI) → Physical layer represents transmission of bits over network
+
+(OSI) → Datalink-layer responsible for transmiting frames and this frames must not exceed a particular size and the size that they should not exceed is calledd 
+  MTU (Maximum transmission unit). this layers core feature is to not let frame exceed MTU. this layer Uniquely finds Mac Address. it also perform error  detection and error correction. 
+
+(TCP-IP) → Internet Layer (it is same as network layer of OSI) Forward data on logical addressing (IP), responsible for route-discovery , transmission of packets from source to destination ip (its responsible for logical addresing and remote networking)
+
+(OSI/TCP-IP) → Transport Layer 	(segue kinda mean seprator and here it seprate uppder layer and lower layer) TCP and UDP here and ports are defined here
+ TCP - reliable protocol and connection oriented (three-way-handshake/SYN,SYN-ACK,ACK packets), transmission of segments done by TCP, Windowing (size of window), 
+       retransmission of segments if error occured
+ UDP - unreliable, used for speedy transmission such as streaming and video calling, no retransmission,
+ ICMP - Internet Control Messaging Protocol (ping and traceroute use this protocol)
+  
+(TCP-IP)→ Application Layer (In osi it is combination of session,presentation,application)
+session layer : responsible for setting a session and managing session
+presentation layer : responsible for presentation of data, Encryption
+Application Layer : Closest to user 
+
+→ WELLKNOWN PORTS: (port related conf file is at /etc/services)
+- HTTPS 443
+- HTTP 80
+- FTP 20 21
+- SSH 22
+- Telnet 23 (older version of ssh and was un-encrypted so less secure)
+- SMTP 25 
+- DNS 53
+- NTP 123
+- SNMP 161 162 (simple network management protocol)
+- SMTPS 465
+
+
+#nmap
+- look for open ports on network
+
+- socket (10.10.10.10:80)
+
+
+# More topics in networking
+- Ip-addressing : all device has Ip-address, two type of ip address IPV4 & IPV6 
+- Network address will identify particular network
+- 192.168.9.1 (here 192.168.9 is network address and 1 is host address)
+- two type of ip <1>Public <2>Privates
+
+- IPV4 
+- running out of this addresses
+- why 255 is limit in ipv4 (each octate has 32bit)
+- octate means 8 and 8*4=32bit thats  why ip is made of 32 bit
+- 128 | 64 | 32 | 16 |8 | 4 | 2 | 1 = octal representation of values
+- now suppose we want to print 192.168.15.1 in this we want 15 ns octate
+- using octal representation it would be
+
+128 | 64 | 32 | 16 |8 | 4 | 2 | 1
+ 0     0    0    0  1   1   1   1
+ 
+ - now 15 in not bigger than 16 so 0 on 16 and now put 1 on 8 
+ - so far we only have got 8 now minus 8 from 15 so 15 - 8 = 7 
+ - to represent 7 we can use value of 4 beacuse 8 is greater than 7 now follow same syntax 7 - 4 = 3
+ - to represt 3 we use 2 and now 3 - 2 = 1
+ - to represent 1 we use 1 
+
+-Now count all bits with 1  that will be 1 + 2 + 4 + 8 = 15  
+-range upto 255 beause all total of them is 255
+
+
+#public and private ip addresses :
+
+- Classes :
+  → Class A ( 1.0.0.0 - 126.255.255.255) we could have 16,777,214 number of host within this ips range | Host part :  Last three octate | Net PART : first octate
+  → Class B ( 128.0.0.0 - 191.255.255.255)  we could have 65,534 number of host within this ips range | Host Part : Last Two Octate | Net Part : First two octate
+  → Class C ( 192.0.0.0 - 223.255.255.255) 254 host within this ips range | Host Part : Last Octate | Network Part : First three octate
+
+- if we are using an address within (10.0.0.0 - 10.255.255.255) its a private address within Class A range
+- if we are using an address within (172.16.0.0 - 172.31.255.255) its a priate address within class B range
+- if we are using an address within (192.168.0.0 - 192.168.255.255) its a private address within class C range
+- on the out side of our network router is assigned an ip address which is a public ip and inside of our network we have our private address
+- private ip cannot access internet for that we need a public ip  
+
+#Subnet
+
+(Here suppose you are a network engineer and you need to give internet connection to a bulding an within that building there are 4 office which you need to give internet so you use 192.168.68.1 address devide them into 4 subnet which will be 192.168.68.0/24 - 192.168.68.64/24  and then more three subnet like that)
+
+- deviding big network into small to improve network stability , more secure and easily managable
+
+- Suppose we have the IP address 192.168.1.1 with a subnet mask of /24.
+
+IP Address: 11000000:10101000:00000001:00000001
+
+Subnet Mask: 11111111:11111111:11111111:00000000 (This corresponds to /24, which means the first 24 bits are for network address and the rest are for hosts)
+			
+To find the network address:
+
+```
+IP Address:    11000000:10101000:00000001:00000001 (192.168.1.1)
+Subnet Mask:   11111111:11111111:11111111:00000000 (255.255.255.0)
+
+AND Operation:
+11000000:10101000:00000001:00000001 (192.168.1.1)
+11111111:11111111:11111111:00000000 (255.255.255.0)
+-----------------------------------
+11000000:10101000:00000001:00000000 (192.168.1.0)
+
+Network Address: 192.168.1.0
+
+- So, the network address for the IP address 192.168.1.1/24 is 192.168.1.0. This is because the first 24 bits (the subnet mask) define the network, and the remaining bits are for hosts.
+
+- To determine how many subnets a network can be divided into, you need to consider the subnet mask and class of the IP address.
+
+Here's the basic process:
+
+- Identify the Subnet Mask: This tells you how many bits are used for the network portion of the IP address.
+- Find the Number of Subnet Bits: Subtract the number of network bits from the total number of bits in the IP address. These extra bits represent the number of bits available for subnetting.
+- Calculate the Number of Subnets: To find the number of subnets, raise 2 to the power of the number of subnet bits.
+- For example, if you have an IP address with a subnet mask of /24 (which is equivalent to 255.255.255.0), it means there are 24 bits dedicated to the network portion. This leaves 32 - 24 = 8 bits for subnetting.
+
+Subnet Mask: 255.255.255.0 (or /24)
+Network Bits: 24
+Total Bits: 32
+
+Subnet Bits: Total Bits - Network Bits = 32 - 24 = 8
+Number of Subnets: 2^8 = 256
+So, in this case, the network can be divided into 256 subnets. 
+ 
+#Ipv6 address
+- way better
+- in ipv6 we have 128 bit and each block is called a hextate
+- example
+
+2001 : 089b : 0000 : 0000 : 0000 : 0000 : 0000 : 0ac9
+
+- in this address each value address 4 bit means 2001 = 4+4+4+4 = 16 bit means each hextate has 16 bit 
+
+- now ipv6 use 0-9 and a-f to addresing and a-f means 10-15 just to understand 
+
+converting this first hextate 2001 to binary 
+-each character 4 byte means
+
+0010:0000:0000:0001 = 2001 part of ipv6 just one hextate and other 7 are still there
+
+- generally we see /64 in ipv6 address mean one user can have very large numbers of host
+
+- why /64 beacuse first four segment is network id and last four segment is host id now each hext tate have 16 bits so 16*4 = 64 bits (same as we did for ip4)
+
+
+-----------------------
+>>Networking Concepts :
+-----------------------
+   → DHCP - dynamic host configuration protocol (responsible for assigning ip to every new device that connects to network) we will have a DHCP server which will perform this task and in some case its just a router on the edge of the nework acting as dhcp server .
+   → DHCP POOL 
+      
+- Default Gateway : a way out to network
+suppose dhcp gave machine 192.168.1.34 ip default gateway for that machine will be 192.168.1.1 and than machine will be able to connect outside the network and this default gateway is defined at router uncle
+-if we try sending request to youtube.com machine send that request to router and if router dont find that within the network it forwards that request to ISP'S router which have lot more information that our router and after finding result it will give us the resutls. 
+
+
+------------------
+>>Network Manager:
+------------------
+- 
+
+>Command :
+
+nmcli = commandlinr utility for network manager 
+sudo systemctl start network-manager = start network-manager using systemd
+sudo systemctl status network-manager = show status of network-manager 
+sudo nmcli con add con-name “wired connection 3” type ethernet ip4 192.169.22.22/24 gt4 192.168.22.1/24 ifname eth09 autoconnect yes
+( con add (connection add) con-name (connection name) type (conection type here ethernet) (ip4 ipv4 add) (gt4 gatway ipv4 add) ifname (interface name) autoconnect yes = sutomatically connect )
+
+#netwoek configuration 
+
+>command : 
+
+ip - show / manipulate routing, network devices, interfaces and tunnels
+ip addr - list protocol (IP or IPv6) address on a device.
+ip link - list all network-channel/network-device.
+hostnamectl set-hostname “newhostname” = set hostname or change hostname
+
+ip address config file loacation = /etc/network/interfaces
+
+
+-----------------------
+>>Old Legacy Commands :
+-----------------------
+
+>Commands :
+
+sudo apt-get install net-utils = install network utility
+route - show / manipulate the IP routing table
+ifconfig - configure a network interface
+
+
+----------------------------
+>>Network Troublr-shooting :
+----------------------------
+- first install net-tools with sudo apt-get install net-tool
+- loop is when network get stuck in looping and the cause of this might be network configuration on router
+- 
+
+#TTL - Time To Live (packet die aftter some time) defines how long a packet will live
+- solution for looping
+- everytime packet reaches to new router it will deductt some time an assign new TTL to packet and it will continue untill packet reaches to destination or dies
+- 
+
+>Commands:
+
+ping = check network connectivity / Use ICMP to find host using echo
+Ifconfig = check wether interface is up or down and to verify ip (to get ip of device)
+ip addr = same work as ifconfig
+ifconfig “interface” “up/down” = at interface use your interface and up and down are for enable or disable to interface
+
+- if any interface not getting ip from dhcp and we want to assign ip manuallly we can use
+
+sudo ifconfig “interface” “IP-address" netmask “netmask-ip”
+eg sudo ifconfig eth0s3 192.168.1.65 netmask 255.255.255.0 
+
+- to manage or manually add ipv6 address 
+
+sudo ip -6 address 2001:db8::1/64 dev eth0s3 	
+
+#methodology (ping them to find where the problem is located)
+
+- first ping remote address
+- then ping default gateway
+- ping your own ip address
+- then ping loop back address 
+
+# trace route command :
+- first device send packet with TTL of 1 and after the packet dies device will send another packet with last TTL of packet + 1 means TTL of 2 and it will keep repeating the process untill packet reaches its final destination that is how trace route finds its path to the destination.
+
+#Network Connections:
+
+netstat 
+- Print network connections, routing tables, interface statistics, masquerade connections, and multi‐cast memberships
+- netstat is a versatile tool used in various scenarios for diagnosing network issues, monitoring network activity, analyzing network performance and      ensuring the security and stability of networked systems.
+
+ss - netstat replacement
+
+nc - netcat command 
+- with netcat we can listen to ports its a wide utility we can do a lot of things 
+- https://youtube.com/playlist?list=PLW5y1tjAOzI1v-RQ8rAftvqKawXQR87eL&si=W9sR9Hz6u-Grk1ZU
+
+#secuirty user session :
+- two-three important file (to read them use last or lastb)
+- (1) /var/run/utmp - give information who is currently logged on to system
+- (2) /var/log/wtmp - information regarding looging in and out and also system on and off
+- (3) /var/log.btmp - allow failed login attempt 
+
+>Command :
+
+who - show who is logged on (use wtmp file)
+w - Show who is logged on and what they are doing
+last, lastb - show a listing of last logged in users 
+
+#listing open files and processes
+
+>Command:
+
+lsof - listing open file
+lsof -u “username” - list of files used by particular users
+fuser - identify processes using files or sockets
+
+(Only for understanding purpose)
+- HERE 
+- cws - current working directory
+- rtd - root directory
+- txt - programme text
+- REG - regular directory
+- CHR - character special file
+- FIFO - first in first out 
+
+#resource limits and passwords
+- resource limitation to particular user
+
+>Commands :
+ 
+ ulimit - get and set user limits
+ 
+- soft limit means its increasable limit
+- hard limit means its cannot be increased
+- hard limit is absolute limit means hardware limit which cant be increased
+- file for limits is at /etc/security/limit.conf
+
+#superuser privileges
+-config file /etc/sudoers 
+
+- use visudo to open above given file
+
+# Host and Network security
+- we already see about nolgin user ( the user who cannnor login)
+- nologin user can be used lets say when some users password got compromised we can set him to a nologin user
+- the other way for this kind of situation is to create a nologin file in /etc/nologin 
+- it will not let anyone globally login and no user will be able to login now how will someone login then we can use root login or we can reboot system
+- after reboot this file will be gone 
+
+#securing network
+- something called "Xinetd(used to know as inetd)" refered as security daemon
+- file is located in /etc/Xinetd.conf which contain global configuration
+- here in this file there is something called "include dir" which points for if there is any directory where some service file is stored
+- to avoid network security breach use as less services as possible
+
+
+--------------------------------
+>>Introduction to cryptography :
+--------------------------------
+-purpose is to protect data
+
+symetric system : use private key to encrypt and decrypt file or password
+asymetric system : use private key to decrypt data and to encrypt data it uses public key
+
+# GPG Keys :
+- gnu privacy guard
+- gives privacy and integrety
+
+=gpg installation
+
+sudo apt-get install rng-tools
+gpg -gen-key = create gpg keys
+gpg -r your@gmail.com --encrypt file.txt - create n encrypted file
+gpg --decrypt file = decrypt the file
+gpg --export your@email.com > filekey.pub (public key explorting)	
+gpg --detach-sign file.txt = digitally sign file
+gpg --verify file.txt = verify digital signature
+
+#ssh(secureshell) overview
+- used for remote login
+- involve asymetric keypair
+- .ssh directory and knownhosts will keep record of all public keys which we connect for first time so from second time it will not exchange keys again
+- also /etc/hosts/knownhost other files location 
+
+#ssh configuration
+- in /etc/ssh there is a file name ssh_config which is related to client side and sshd_config which is realted to server.This will make systemwise global changes
+- or create a config file which is located in $Home/.ssh/ 
+- in sshd_conf file we can make modification and to reflect the modification restart ssh service
+
+> command :
+
+ssh-keygen = genertas key pair
+
+- create key using above command
+- to copy some file over ssh
+
+ssh-copy-id -i keyfilename.pub username@ip
+
+                                                                              ___   ___
+                                                                             |___END___|
+
