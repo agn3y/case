@@ -3,7 +3,7 @@
 ** Installing tomcat as a service        **
 *******************************************
 
-This is for Ubntu and Debian Os if you want to perform this operation in RHEL or Cent Os try case2.
+This is for Ubuntu and Debian Os if you want to perform this operation in RHEL or Cent Os try case2.
 
 Step #1:Install OpenJDK :
 

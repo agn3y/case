@@ -1,5 +1,6 @@
-		Docker - The Container Virtualization Tool
-	     ==================================================
+Docker - The Container Virtualization Tool
+==========================================
+
 Day-1:
 ###############
 #

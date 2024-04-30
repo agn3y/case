@@ -1,0 +1,111 @@
+# LINUX_NOTES
+
+>>Distros 
+#computer software distribution package.
+
+>>CLI Interface
+
+# = root user
+~ = normal user
+/ = root directory
+
+>>File-System hiearchy in Linux
+
+
+ 
+>>Basic command
+
+man = manual command
+info = throws information same as man and help, may not be available in some distro
+help = works same as manual and provide help manu for particular command
+
+(*)use above given command with all below given commands to understand all command better
+
+apt = packet manager command, used to install remove and purge packets
+pwd = shows present working directory
+cd = change directory
+ls = list all directories 
+mkdir = tp create new directory
+rmdir = to remove empty directory
+rm -rf = to remove any non-empty directory or my file
+touch = to create new file
+echo = to print something it could be string,variable
+cat = to see the content of particular file
+cp = copy command is used to copy file or directory
+mv = mv command is used to move or rename file or directory
+grep = this command is used to find string from particular file such aaas txt file or code file whatever
+wget = using this we can download something by providing url 
+curl = does same thing as wget
+which = find path of whatever you five after it if exists on machine
+find = find whatever you ask for within directory
+locate = locate whatever you ask for within machine, basically locate use database to locate something
+tree = show list as a tree, work as ls command 
+hostname = gives hostname of machine
+bash = to run shell file we can also use ./ to run shell
+df = gives file system info
+head = print first 10 lines of file
+tail = print last lines of file
+diff  = find diffrence between two files 
+vimdiff = is alternative of diff command seems to be better working than diff
+sleep  = to sleep the command line
+history = to see all commands that were executed / gives history of all used commands
+tar = extract tarball files
+zip = to zip or compress files and folders
+unzip = to unzip a file
+deb -i = to install deb files
+type = its a command to check something is a interal command/whatever or not such as 
+pstree = shows tree of processes
+
+>>user-related commands
+
+#(info) root user = daddy of all user
+
+sudo = allow you to run command as a super user
+uname = gives info about user unixname
+id = gives information about user
+su = change user to root user, you can also change to another user using this command
+useradd = to add new user
+deluser = to delete user
+passwd = to set password for new user or pre-existing user
+addgroup = to add group in server
+delgroup = to remove group from server
+usermod = to modify user priviledges 
+{usecase} suppose we want to run docker command without using sudo in that case we can allow user to run docker command without using sudo. we need to run this command as a root user
+[[sudo usermod -aG docker “user”]]
+chmod  = change permissions for particular file or directory
+chown = changeowner,command is used to change ownership of particular file or directory to particular user
+ps -ef = show all process
+kill = this command is used for killing process
+jobs = show all running jobs started by user
+SIGTERM = to request a process to stop 
+SIGKILL = to forcefully kill a process
+poweroff = to turn off machine use this command we can also use {Init 0}
+reboot = to restart machine use this command
+shutdown = command to shutdown machine we can also set time to use this command
+timeout = 
+
+>>network related command
+
+ifconfig = gives information about connection and their Ip address / displays all network interfaces
+ifup / ifdown = brings network interfaces up and down
+iwconfig = used to configure wireless network interfaces
+#if above given commands dont work try installing net-tools then they shoud work
+hostname -I = gives ip address
+ping = to check wether some ip or domain is alive or not
+traceroute = trace the route that packets take from the sender to a specified destination
+netstat = Displays network connections, routing tables, interface statistics
+nslookup / dig = use dns query to get ip of domain
+
+
+>>Protocol Commands
+
+ssh = Secure shell login / used to remotely login to any machine
+scp = Secure copy protocol used to securely transfer files between a local and remote host
+
+>>text editors
+
+#only bydefault vim come preinstalled sometime we might have to install other all editors 
+nano = text editor command
+vim = text editor command 
+
+#there are many more its just 1% of what we have 
